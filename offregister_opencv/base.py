@@ -6,7 +6,7 @@ from offregister_fab_utils.apt import apt_depends
 from offregister_fab_utils.git import clone_or_update
 
 
-def dl_install_opencv(branch='master', tag='4.1.0', extra_cmake_args=''):
+def dl_install_opencv(branch='master', tag='4.1.1', extra_cmake_args=''):
     distro = run('lsb_release -cs', quiet=True)
     if run("grep '^[[:blank:]]*[^[:blank:]#;]' /etc/apt/sources.list | grep -qF '-security main'", warn_only=True).failed:
         sudo('add-apt-repository -y "deb http://security.ubuntu.com/ubuntu {distro}-security main"'.format(distro=distro))
