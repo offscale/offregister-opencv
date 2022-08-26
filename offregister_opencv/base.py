@@ -1,23 +1,24 @@
-from fabric.api import run
-from fabric.context_managers import cd
-from fabric.operations import sudo
 from offregister_fab_utils.apt import apt_depends
 from offregister_fab_utils.git import clone_or_update
 
 
 def dl_install_opencv(branch="master", tag="4.1.1", extra_cmake_args=""):
-    distro = run("lsb_release -cs", quiet=True)
-    if run(
-        "grep '^[[:blank:]]*[^[:blank:]#;]' /etc/apt/sources.list | grep -qF '-security main'",
-        warn_only=True,
-    ).failed:
-        sudo(
+    distro = c.run("lsb_release -cs", hide=True)
+    if (
+        c.run(
+            "grep '^[[:blank:]]*[^[:blank:]#;]' /etc/apt/sources.list | grep -qF '-security main'",
+            warn=True,
+        ).exited
+        != 0
+    ):
+        c.sudo(
             'add-apt-repository -y "deb http://security.ubuntu.com/ubuntu {distro}-security main"'.format(
                 distro=distro
             )
         )
-        sudo("apt update")
+        c.sudo("apt update")
     apt_depends(
+        c,
         "build-essential",
         "checkinstall",
         "cmake",
@@ -68,18 +69,18 @@ def dl_install_opencv(branch="master", tag="4.1.1", extra_cmake_args=""):
         "libopencv-dev",
         "opencv-data",
     )
-    run("mkdir -p '$HOME/repos'", shell_escape=False)
-    with cd("$HOME/repos"):
+    c.run("mkdir -p '$HOME/repos'", shell_escape=False)
+    with c.cd("$HOME/repos"):
         clone_or_update(
             repo="opencv", team="opencv", branch=branch, tag=tag, skip_reset=True
         )
-        run("mkdir -p opencv-build")
-        with cd("opencv-build"):
-            run(
+        c.run("mkdir -p opencv-build")
+        with c.cd("opencv-build"):
+            c.run(
                 "cmake -D CMAKE_BUILD_TYPE=RELEASE "
                 "-D CMAKE_INSTALL_PREFIX=/usr/local {} ../opencv".format(
                     extra_cmake_args
                 )
             )
-            run("make")
-            sudo("make install")
+            c.run("make")
+            c.sudo("make install")
